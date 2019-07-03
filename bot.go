@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -202,7 +201,6 @@ func (b *Bot) incomingUpdate(upd *Update) {
 			match := cmdRx.FindAllStringSubmatch(m.Text, -1)
 
 			// Command found - handle and return
-			log.Print("Fetching /command")
 			if match != nil {
 				// Syntax: "</command>@<bot> <payload>"
 				command, botName := match[0][1], match[0][3]
@@ -218,13 +216,11 @@ func (b *Bot) incomingUpdate(upd *Update) {
 			}
 
 			// 1:1 satisfaction
-			log.Print("Fetching 1:1 satisfaction")
 			if b.handle(m.Text, m) {
 				return
 			}
 
 			// OnText
-			log.Print("Fetching OnText")
 			b.handle(OnText, m)
 			return
 		}
@@ -425,7 +421,6 @@ func (b *Bot) incomingUpdate(upd *Update) {
 func (b *Bot) handle(name string, m *Message) bool {
 	handler, ok := b.handlers[name]
 	if !ok {
-		log.Printf("[Error] Handler (%v) not found", name)
 		return false
 	}
 
