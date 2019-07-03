@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -193,7 +194,8 @@ func (b *Bot) incomingUpdate(upd *Update) {
 
 		// Commands
 		if m.Text != "" {
-			// Filtering malicious messsages
+			log.Print(m.Text)
+			// Filtering malicious messages
 			if m.Text[0] == '\a' {
 				return
 			}
