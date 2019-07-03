@@ -422,9 +422,10 @@ func (b *Bot) incomingUpdate(upd *Update) {
 	}
 }
 
-func (b *Bot) handle(end string, m *Message) bool {
-	handler, ok := b.handlers[end]
+func (b *Bot) handle(name string, m *Message) bool {
+	handler, ok := b.handlers[name]
 	if !ok {
+		log.Printf("[Error] Handler (%v) not found", name)
 		return false
 	}
 
