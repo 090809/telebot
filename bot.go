@@ -1385,3 +1385,139 @@ func (b *Bot) FileURLByID(fileID string) (string, error) {
 	}
 	return fmt.Sprintf("%s/file/bot%s/%s", b.URL, b.Token, f.FilePath), nil
 }
+
+// UploadStickerFile returns uploaded File on success.
+func (b *Bot) UploadStickerFile(userID int, pngSticker *File) (*File, error) {
+	files := map[string]File{
+		"png_sticker": *pngSticker,
+	}
+	params := map[string]string{
+		"user_id": strconv.Itoa(userID),
+	}
+
+	respJSON, err := b.sendFiles("uploadStickerFile", files, params)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp struct {
+		Ok          bool
+		Result      File
+		Description string
+	}
+
+	err = json.Unmarshal(respJSON, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if !resp.Ok {
+		return nil, errors.Errorf("api error: %s", resp.Description)
+	}
+
+	return &resp.Result, nil
+}
+
+// GetStickerSet returns StickerSet on success.
+func (b *Bot) GetStickerSet(name string) (*StickerSet, error) {
+	respJSON, err := b.Raw("getStickerSet", map[string]string{"name": name})
+	if err != nil {
+		return nil, err
+	}
+
+	var resp struct {
+		Ok          bool
+		Description string
+		Result      *StickerSet
+	}
+	err = json.Unmarshal(respJSON, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if !resp.Ok {
+		return nil, errors.Errorf("api error: %s", resp.Description)
+	}
+
+	return resp.Result, nil
+}
+
+// CreateNewStickerSet creates new sticker set.
+func (b *Bot) CreateNewStickerSet(sp StickerSetParams, containsMasks bool, maskPosition MaskPosition) error {
+	files := map[string]File{
+		"png_sticker": *sp.PngSticker,
+	}
+	params := map[string]string{
+		"user_id": strconv.Itoa(sp.UserID),
+		"name":    sp.Name,
+		"title":   sp.Title,
+		"emojis":  sp.Emojis,
+	}
+
+	if containsMasks {
+		mp, err := json.Marshal(&maskPosition)
+		if err != nil {
+			return err
+		}
+		params["mask_position"] = string(mp)
+	}
+
+	respJSON, err := b.sendFiles("createNewStickerSet", files, params)
+	if err != nil {
+		return err
+	}
+
+	return extractOkResponse(respJSON)
+}
+
+// AddStickerToSet adds new sticker to existing sticker set.
+func (b *Bot) AddStickerToSet(sp StickerSetParams, maskPosition MaskPosition) error {
+	files := map[string]File{
+		"png_sticker": *sp.PngSticker,
+	}
+	params := map[string]string{
+		"user_id": strconv.Itoa(sp.UserID),
+		"name":    sp.Name,
+		"title":   sp.Title,
+		"emojis":  sp.Emojis,
+	}
+
+	if maskPosition != (MaskPosition{}) {
+		mp, err := json.Marshal(&maskPosition)
+		if err != nil {
+			return err
+		}
+		params["mask_position"] = string(mp)
+	}
+
+	respJSON, err := b.sendFiles("addStickerToSet", files, params)
+	if err != nil {
+		return err
+	}
+
+	return extractOkResponse(respJSON)
+}
+
+// SetStickerPositionInSet moves a sticker in set to a specific position.
+func (b *Bot) SetStickerPositionInSet(sticker string, position int) error {
+	params := map[string]string{
+		"sticker":  sticker,
+		"position": strconv.Itoa(position),
+	}
+	respJSON, err := b.Raw("setStickerPositionInSet", params)
+	if err != nil {
+		return err
+	}
+
+	return extractOkResponse(respJSON)
+}
+
+// DeleteStickerFromSet deletes sticker from set created by the bot.
+func (b *Bot) DeleteStickerFromSet(sticker string) error {
+	respJSON, err := b.Raw("deleteStickerFromSet", map[string]string{"sticker": sticker})
+	if err != nil {
+		return err
+	}
+
+	return extractOkResponse(respJSON)
+}
