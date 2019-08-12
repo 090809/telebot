@@ -54,6 +54,9 @@ type ArticleResult struct {
 	// InputMessageContent.
 	Text string `json:"message_text,omitempty"`
 
+	//parse_mode,allow blank, Markdown and HTML
+	Parse string `json:"parse_mode,omitempty"`
+
 	// Optional. URL of the result.
 	URL string `json:"url,omitempty"`
 
